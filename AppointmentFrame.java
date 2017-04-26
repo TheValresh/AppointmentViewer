@@ -61,6 +61,8 @@ public class AppointmentFrame extends JFrame {
     Stack<Appointment> appointmentStack;
 
     public AppointmentFrame() {
+        createAppointmentPanel();
+
         contactList = new Contacts();
         appointmentStack = new Stack<Appointment>();
         try {
@@ -71,7 +73,6 @@ public class AppointmentFrame extends JFrame {
             descriptionTextField.setText("File imported did not contain a number in the first line.");
         }
 
-        createAppointmentPanel();
         setSize(FRAME_WIDTH, FRAME_HEIGHT);
     }
 
@@ -246,40 +247,49 @@ public class AppointmentFrame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int year, month, day, hourReq, minuteReq;
 
-
-                year = currentDate.get(Calendar.YEAR);
-                month = currentDate.get(Calendar.MONTH);
-                day = currentDate.get(Calendar.DAY_OF_MONTH);
                 hourReq = Integer.parseInt(requestedHour.getText());
                 minuteReq = Integer.parseInt(requestedMinute.getText());
-                // Error checking for invalid values here
-                if (hourReq > 24) {
-                    descriptionTextField.setText("Hours are invalid");
-                    throw new IllegalArgumentException("Hours is invalid.");
+
+                try {
+                    year = currentDate.get(Calendar.YEAR);
+                    month = currentDate.get(Calendar.MONTH);
+                    day = currentDate.get(Calendar.DAY_OF_MONTH);
+
+                    // Error checking for invalid values here
+                    if (hourReq > 24 || hourReq < 0) {
+                        throw new IllegalArgumentException();
+                    }
+
+                    if (minuteReq > 59 || minuteReq < 0) {
+                        throw new IllegalArgumentException();
+                    }
+
+
+                    Calendar requestedAppointmentTime = new GregorianCalendar(year, month, day, hourReq, minuteReq, 0);
+                    String requestedAppointmentDescription = descriptionTextField.getText();
+                    Person requestedPerson = new Person();
+                    requestedPerson.setLastName(contactLastNameField.getText());
+                    requestedPerson.setFirstName(contactFirstNameField.getText());
+                    requestedPerson.setTelephone(contactTelephoneField.getText());
+                    requestedPerson.setAddress(contactAddressField.getText());
+                    requestedPerson.setEmail(contactEmailField.getText());
+                    Appointment requestedAppointment = new Appointment(requestedAppointmentTime, requestedAppointmentDescription, requestedPerson);
+
+                    if (!findAppointment(appointments, requestedAppointment)) {
+                        appointments.add(requestedAppointment);
+                        appointmentStack.push(requestedAppointment);
+                        appointmentText.setText(printAppointments(appointments, currentDate));
+                    } else
+                        descriptionTextField.setText("CONFLICT!!");
+
                 }
 
-                if (minuteReq > 59) {
-                    descriptionTextField.setText("Months are invalid");
-                    throw new IllegalArgumentException("Minutes are invalid");
+                catch (IllegalArgumentException exception) {
+                    if (minuteReq > 59 || minuteReq < 0)
+                        descriptionTextField.setText("Minutes are invalid");
+                    if (hourReq > 24 || hourReq < 0)
+                        descriptionTextField.setText("Hours are invalid");
                 }
-
-
-                Calendar requestedAppointmentTime = new GregorianCalendar(year, month, day, hourReq, minuteReq, 0);
-                String requestedAppointmentDescription = descriptionTextField.getText();
-                Person requestedPerson = new Person();
-                requestedPerson.setLastName(contactLastNameField.getText());
-                requestedPerson.setFirstName(contactFirstNameField.getText());
-                requestedPerson.setTelephone(contactTelephoneField.getText());
-                requestedPerson.setAddress(contactAddressField.getText());
-                requestedPerson.setEmail(contactEmailField.getText());
-                Appointment requestedAppointment = new Appointment(requestedAppointmentTime, requestedAppointmentDescription, requestedPerson);
-
-                if (!findAppointment(appointments, requestedAppointment)) {
-                    appointments.add(requestedAppointment);
-                    appointmentStack.push(requestedAppointment);
-                    appointmentText.setText(printAppointments(appointments, currentDate));
-                } else
-                    descriptionTextField.setText("CONFLICT!!");
             }
         });
 
